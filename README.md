@@ -11,7 +11,7 @@
 
 ---
 
-**Installion:**
+**Installation:**
 
 1. Download SuperColorChat.dll and place it in your plugins folder
 2. Restart the server
