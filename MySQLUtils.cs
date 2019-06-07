@@ -29,7 +29,7 @@ namespace SuperColorChat
             MySqlConnection connection = null;
             try
             {
-                connection = new MySqlConnection(String.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};PORT={4};", Main.Config.DatabaseAddress, Main.Config.DatabaseName, Main.Config.DatabaseUsername, Main.Config.DatabasePassword, Main.Config.DatabasePort));
+                connection = new MySqlConnection(string.Format("SERVER={0};DATABASE={1};UID={2};PASSWORD={3};PORT={4};", Main.Config.DatabaseAddress, Main.Config.DatabaseName, Main.Config.DatabaseUsername, Main.Config.DatabasePassword, Main.Config.DatabasePort));
             }
             catch (Exception e)
             {
@@ -40,131 +40,164 @@ namespace SuperColorChat
 
         private void CreateCheckSchema()
         {
-            try
+            using (MySqlConnection connection = CreateConnection())
             {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = connection.CreateCommand();
-                connection.Open();
-                command.CommandText = "SHOW TABLES LIKE '" + Main.Config.DatabaseTableName + "';";
-
-                object check = command.ExecuteScalar();
-
-                if (check == null)
+                try
                 {
-                    Logger.Log("Tables not found, creating!");
-                    command.CommandText = "CREATE TABLE `" + Main.Config.DatabaseTableName + "` ( `steamId` VARCHAR(50) NULL DEFAULT NULL, `color` VARCHAR(50) NULL DEFAULT NULL) COLLATE = 'utf8_general_ci' ENGINE = InnoDB;";
+                    MySqlCommand command = connection.CreateCommand();
+                    connection.Open();
+                    command.CommandText = "SHOW TABLES LIKE '" + Main.Config.DatabaseTableName + "';";
+
+                    object check = command.ExecuteScalar();
+
+                    if (check == null)
+                    {
+                        Logger.Log("Tables not found, creating!");
+                        command.CommandText = "CREATE TABLE `" + Main.Config.DatabaseTableName + "` ( `steamId` VARCHAR(50) NULL DEFAULT NULL, `color` VARCHAR(50) NULL DEFAULT NULL) COLLATE = 'utf8_general_ci' ENGINE = InnoDB;";
+                        command.ExecuteNonQuery();
+                    }
+                    connection.Close();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
+            }
+        }
+
+        public static bool CheckExists(string steamId)
+        {
+            using (MySqlConnection connection = CreateConnection())
+            {
+                try
+                {
+                    MySqlCommand command = new MySqlCommand
+                    (
+                        "SELECT EXISTS(SELECT 1 FROM `" + Main.Config.DatabaseTableName + "` " +
+                        "WHERE `steamId` = @SteamId);", connection
+                    );
+
+                    command.Parameters.AddWithValue("@SteamId", steamId);
+                    connection.Open();
+
+                    var status = Convert.ToInt32(command.ExecuteScalar());
+
+                    return status > 0;
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogException(ex);
+                    return false;
+                }
+            }
+        }
+
+        public static string GetColor(string steamId)
+        {
+            using (MySqlConnection connection = CreateConnection())
+            {
+                string output = null;
+
+                try
+                {
+                    MySqlCommand command = new MySqlCommand
+                    (
+                        "SELECT * FROM " + Main.Config.DatabaseTableName + " " +
+                        "WHERE steamId = @SteamId;", connection
+                    );
+
+                    command.Parameters.AddWithValue("@SteamId", steamId);
+
+                    connection.Open();
+                    MySqlDataReader dataReader = command.ExecuteReader(System.Data.CommandBehavior.SingleRow);
+                    while (dataReader.Read())
+                    {
+                        output = Convert.ToString(dataReader["color"]);
+                    }
+                    dataReader.Close();
+                    connection.Close();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
+                return output;
+            }
+        }
+
+        public static void SetColor(string steamId, string color)
+        {
+            using (MySqlConnection connection = CreateConnection())
+            {
+                try
+                {
+                    MySqlCommand command = new MySqlCommand
+                    (
+                        "INSERT INTO " + Main.Config.DatabaseTableName + "(steamId, color) " +
+                        "VALUES (@SteamId, @Color);", connection
+                    );
+
+                    command.Parameters.AddWithValue("@SteamId", steamId);
+                    command.Parameters.AddWithValue("@Color", color);
+
+                    connection.Open();
                     command.ExecuteNonQuery();
+                    connection.Close();
                 }
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
-            }
-        }
-
-        public static bool CheckExists(String steamId)
-        {
-            try
-            {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = new MySqlCommand("SELECT 1 FROM `" + Main.Config.DatabaseTableName + "` WHERE `steamId` = @SteamId;", connection);
-                command.Parameters.AddWithValue("@SteamId", steamId);
-                connection.Open();
-                object result = command.ExecuteScalar();
-                connection.Close();
-
-                if (result != null)
+                catch (Exception e)
                 {
-                    return true;
+                    Logger.LogException(e);
                 }
-
             }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
-            }
-            return false;
         }
 
-        public static string GetColor(String steamId)
+        public static void UpdateColor(string steamId, string color)
         {
-            string output = null;
-            try
+            using (MySqlConnection connection = CreateConnection())
             {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = new MySqlCommand("SELECT * FROM " + Main.Config.DatabaseTableName + " WHERE steamId = @SteamId;", connection);
-                command.Parameters.AddWithValue("@SteamId", steamId);
-
-                connection.Open();
-                MySqlDataReader dataReader = command.ExecuteReader(System.Data.CommandBehavior.SingleRow);
-                while (dataReader.Read())
+                try
                 {
-                    output = Convert.ToString(dataReader["color"]);
+                    MySqlCommand command = new MySqlCommand
+                    (
+                        "UPDATE " + Main.Config.DatabaseTableName + " " +
+                        "SET `color` = @Color WHERE  `steamId` = @SteamId;", connection
+                    );
+
+                    command.Parameters.AddWithValue("@SteamId", steamId);
+                    command.Parameters.AddWithValue("@Color", color);
+
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
                 }
-                dataReader.Close();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
-            }
-            return output;
-        }
-
-        public static void SetColor(String steamId, String color)
-        {
-            try
-            {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = new MySqlCommand("INSERT INTO " + Main.Config.DatabaseTableName + "(steamId, color) VALUES (@SteamID, @Color);", connection);
-                command.Parameters.AddWithValue("@SteamID", steamId);
-                command.Parameters.AddWithValue("@Color", color);
-
-                connection.Open();
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
             }
         }
 
-        public static void UpdateColor(String steamId, String color)
+        public static void RemoveColor(string steamId)
         {
-            try
+            using (MySqlConnection connection = CreateConnection())
             {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = new MySqlCommand("UPDATE " + Main.Config.DatabaseTableName + " SET `color` = @Color WHERE  `steamId` = @SteamId;", connection);
-                command.Parameters.AddWithValue("@SteamId", steamId);
-                command.Parameters.AddWithValue("@Color", color);
+                try
+                {
+                    MySqlCommand command = new MySqlCommand
+                    (
+                        "DELETE FROM " + Main.Config.DatabaseTableName + " " +
+                        "WHERE `steamId` = @SteamId;", connection
+                    );
+                    command.Parameters.AddWithValue("@SteamId", steamId);
 
-                connection.Open();
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
-            }
-        }
-
-        public static void RemoveColor(String steamId)
-        {
-            try
-            {
-                MySqlConnection connection = CreateConnection();
-                MySqlCommand command = new MySqlCommand("DELETE FROM " + Main.Config.DatabaseTableName + " WHERE `steamId` = @SteamId;", connection);
-                command.Parameters.AddWithValue("@SteamId", steamId);
-
-                connection.Open();
-                command.ExecuteNonQuery();
-                connection.Close();
-            }
-            catch (Exception e)
-            {
-                Logger.LogException(e);
+                    connection.Open();
+                    command.ExecuteNonQuery();
+                    connection.Close();
+                }
+                catch (Exception e)
+                {
+                    Logger.LogException(e);
+                }
             }
         }
     }

@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SuperColorChat</RootNamespace>
     <AssemblyName>SuperColorChat</AssemblyName>
-    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -32,18 +32,19 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
       <HintPath>lib\Assembly-CSharp.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
       <HintPath>lib\Assembly-CSharp-firstpass.dll</HintPath>
-    </Reference>
-    <Reference Include="Rocket.API">
-      <HintPath>lib\Rocket.API.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.Core">
       <HintPath>lib\Rocket.Core.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Rocket.Unturned">
       <HintPath>lib\Rocket.Unturned.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -53,24 +54,30 @@
     <Reference Include="System.Xml" />
     <Reference Include="UnityEngine">
       <HintPath>lib\UnityEngine.dll</HintPath>
-    </Reference>
-    <Reference Include="I18N">
-      <HintPath>Libraries\I18N.dll</HintPath>
-    </Reference>
-    <Reference Include="I18N.West">
-      <HintPath>Libraries\I18N.West.dll</HintPath>
-    </Reference>
-    <Reference Include="MySql.Data">
-      <HintPath>Libraries\MySql.Data.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Management">
-      <HintPath>Libraries\System.Management.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="Uconomy">
       <HintPath>lib\Uconomy.dll</HintPath>
+      <Private>False</Private>
     </Reference>
     <Reference Include="UnityEngine.CoreModule">
       <HintPath>lib\UnityEngine.CoreModule.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="I18N">
+      <HintPath>Libraries\I18N.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="I18N.West">
+      <HintPath>Libraries\I18N.West.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Rocket.API">
+      <HintPath>lib\Rocket.API.dll</HintPath>
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="MySql.Data">
+      <HintPath>Libraries\MySql.Data.dll</HintPath>
       <Private>False</Private>
     </Reference>
   </ItemGroup>

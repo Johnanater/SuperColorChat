@@ -38,7 +38,7 @@ namespace SuperColorChat
                 new Color("darkgreen", "32be3c"),
                 new Color("red", "ff0000"),
                 new Color("yellow", "ffff00"),
-                new Color("orange", ""),
+                new Color("orange", "faa600"),
                 new Color("pink", "ff3399"),
                 new Color("bluegreen", "00ff96"),
                 new Color("bluegray", "4b5091"),

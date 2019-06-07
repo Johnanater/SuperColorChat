@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using fr34kyn01535.Uconomy;
 using Rocket.API;
 using Rocket.Unturned.Chat;
@@ -15,56 +16,59 @@ namespace SuperColorChat
 
         public string Help => "Buy colors!";
 
-        public string Syntax => "<name of color>";
+        public string Syntax => "/color <name of color>";
 
         // For those communists
-        public List<string> Aliases => new List<string>() { "colour" };
+        public List<string> Aliases => new List<string> { "colour" };
 
-        public List<string> Permissions => new List<string>() { "supercolorchat.color" };
+        public List<string> Permissions => new List<string> { "supercolorchat.color" };
 
-        public void Execute(IRocketPlayer caller, string[] command)
+        public async void Execute(IRocketPlayer caller, string[] command)
         {
-            if (command.Length != 0)
+            await Task.Run(() =>
             {
-                if (Main.Config.UseMoney)
+                if (command.Length != 0)
                 {
-                    if (Uconomy.Instance.Database.GetBalance(caller.Id) - Main.Config.Cost < 0)
+                    if (Main.Config.UseMoney)
                     {
-                        UnturnedChat.Say(caller, Main.Instance.Translate("not_enough_money"));
+                        if (Uconomy.Instance.Database.GetBalance(caller.Id) - Main.Config.Cost < 0)
+                        {
+                            UnturnedChat.Say(caller, Main.Instance.Translate("not_enough_money"));
+                            return;
+                        }
+                    }
+
+                    var color = Main.Config.Colors.FirstOrDefault(c => command[0].Equals(c.Name, StringComparison.OrdinalIgnoreCase));
+
+                    if (color == null)
+                    {
+                        UnturnedChat.Say(caller, Main.Instance.Translate("not_whitelisted_color"));
                         return;
                     }
-                }
 
-                var color = Main.Config.Colors.FirstOrDefault(c => command[0].Equals(c.Name, StringComparison.OrdinalIgnoreCase));
+                    if (MySQLUtils.CheckExists(caller.Id))
+                    {
+                        MySQLUtils.UpdateColor(caller.Id, color.Hex);
+                    }
+                    else
+                    {
+                        MySQLUtils.SetColor(caller.Id, color.Hex);
+                    }
+                    Main.userList[caller.Id] = color.Hex;
 
-                if (color == null)
-                {
-                    UnturnedChat.Say(caller, Main.Instance.Translate("not_whitelisted_color"));
-                    return;       
-                }
+                    if (Main.Config.UseMoney)
+                    {
+                        Uconomy.Instance.Database.IncreaseBalance(caller.Id, -Main.Config.Cost);
+                    }
 
-                if (MySQLUtils.CheckExists(caller.Id))
-                {
-                    MySQLUtils.UpdateColor(caller.Id, color.Hex);
+                    UnturnedChat.Say(caller, Main.Instance.Translate("color_updated_to", color.Name, Main.Config.Cost));
+                    Rocket.Core.Logging.Logger.Log(Main.Instance.Translate("log_color_change", caller.DisplayName, caller.Id, color.Name));
                 }
                 else
                 {
-                    MySQLUtils.SetColor(caller.Id, color.Hex);
+                    UnturnedChat.Say(caller, Main.Instance.Translate("avaliable_colors", string.Join(", ", Main.Config.Colors.Select(c => c.Name).ToArray())));
                 }
-                Main.userList[caller.Id] = color.Hex;
-
-                if (Main.Config.UseMoney)
-                {
-                    Uconomy.Instance.Database.IncreaseBalance(caller.Id, -Main.Config.Cost);
-                }
-
-                UnturnedChat.Say(caller, Main.Instance.Translate("color_updated_to", color.Name, Main.Config.Cost));
-                Rocket.Core.Logging.Logger.Log(Main.Instance.Translate("log_color_change", caller.DisplayName, caller.Id, color.Name));
-            }
-            else
-            {
-                UnturnedChat.Say(caller, Main.Instance.Translate("avaliable_colors", string.Join(", ", Main.Config.Colors.Select(c => c.Name).ToArray())));
-            }
+            });
         }
     }
 }

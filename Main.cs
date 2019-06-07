@@ -1,9 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Rocket.API.Collections;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
+using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
+using Rocket.Unturned.Player;
+using SDG.Unturned;
 
 namespace SuperColorChat
 {
@@ -33,15 +37,18 @@ namespace SuperColorChat
             UnturnedPlayerEvents.OnPlayerChatted -= OnPlayerChatted;
         }
 
-        void OnPlayerConnected(Rocket.Unturned.Player.UnturnedPlayer player)
+        async void OnPlayerConnected(UnturnedPlayer player)
         {
-            if (MySQLUtils.CheckExists(player.Id))
+            await Task.Run(() =>
             {
-                userList.Add(player.Id, MySQLUtils.GetColor(player.Id));
-            }
+                if (MySQLUtils.CheckExists(player.Id))
+                {
+                    userList.Add(player.Id, MySQLUtils.GetColor(player.Id));
+                }
+            });
         }
 
-        void OnPlayerDisconnected(Rocket.Unturned.Player.UnturnedPlayer player)
+        void OnPlayerDisconnected(UnturnedPlayer player)
         {
             if (userList.ContainsKey(player.Id))
             {
@@ -49,12 +56,11 @@ namespace SuperColorChat
             }
         }
 
-        void OnPlayerChatted(Rocket.Unturned.Player.UnturnedPlayer player, ref UnityEngine.Color color, string message, SDG.Unturned.EChatMode chatMode, ref bool cancel)
+        void OnPlayerChatted(UnturnedPlayer player, ref UnityEngine.Color color, string message, EChatMode chatMode, ref bool cancel)
         {
             if (userList.ContainsKey(player.Id))
             {
-                var hex = userList.FirstOrDefault(h => h.Key.Contains(player.Id)).Value;
-                color = (UnityEngine.Color)Rocket.Unturned.Chat.UnturnedChat.GetColorFromHex(hex);
+                color = (UnityEngine.Color)UnturnedChat.GetColorFromHex(userList[player.Id]);
             }
         }
 
@@ -71,12 +77,5 @@ namespace SuperColorChat
             {"player_color_not_found", "{0} doesn't have a color selected!"},
             {"your_color_not_found", "You don't have a color selected!"}
         };
-
-        public string Translate(string translation, string arg)
-        {
-            string[] args = arg.Split(',');
-
-            return Translations.Instance.Translate(translation, args);
-        }
     }
 }
