@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using Rocket.API.Collections;
 using Rocket.Core.Plugins;
@@ -18,6 +17,8 @@ namespace SuperColorChat
         public static Main Instance;
         public static Configuration Config;
         public static MySQLUtils MySQLUtils;
+
+        public const string version = "1.0.0.1";
 
         protected override void Load()
         {
