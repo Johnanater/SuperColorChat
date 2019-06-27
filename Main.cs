@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Rocket.API.Collections;
+using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
@@ -29,6 +30,8 @@ namespace SuperColorChat
             U.Events.OnPlayerConnected += OnPlayerConnected;
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerChatted += OnPlayerChatted;
+
+            Logger.Log(string.Format("SuperColorChat by Johnanater, version: {0}", version));
         }
 
         protected override void Unload()
