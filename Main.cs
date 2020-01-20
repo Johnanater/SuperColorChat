@@ -19,7 +19,7 @@ namespace SuperColorChat
         public static Configuration Config;
         public static MySQLUtils MySQLUtils;
 
-        public const string version = "1.0.0.1";
+        public const string Version = "1.0.1";
 
         protected override void Load()
         {
@@ -31,7 +31,7 @@ namespace SuperColorChat
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
             UnturnedPlayerEvents.OnPlayerChatted += OnPlayerChatted;
 
-            Logger.Log(string.Format("SuperColorChat by Johnanater, version: {0}", version));
+            Logger.Log($"SuperColorChat by Johnanater, version: {Version}");
         }
 
         protected override void Unload()
