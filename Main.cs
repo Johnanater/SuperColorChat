@@ -13,19 +13,19 @@ namespace SuperColorChat
 {
     public class Main : RocketPlugin<Configuration>
     {
-        public static Dictionary<string, string> userList = new Dictionary<string, string>();
+        public static readonly Dictionary<string, string> UserList = new Dictionary<string, string>();
 
         public static Main Instance;
         public static Configuration Config;
-        public static MySQLUtils MySQLUtils;
+        public static MySqlUtils MySqlUtils;
 
-        public const string Version = "1.0.1";
+        public const string Version = "1.0.2";
 
         protected override void Load()
         {
             Instance = this;
             Config = Configuration.Instance;
-            MySQLUtils = new MySQLUtils();
+            MySqlUtils = new MySqlUtils();
 
             U.Events.OnPlayerConnected += OnPlayerConnected;
             U.Events.OnPlayerDisconnected += OnPlayerDisconnected;
@@ -41,30 +41,27 @@ namespace SuperColorChat
             UnturnedPlayerEvents.OnPlayerChatted -= OnPlayerChatted;
         }
 
-        async void OnPlayerConnected(UnturnedPlayer player)
+        private async void OnPlayerConnected(UnturnedPlayer player)
         {
-            await Task.Run(() =>
+            if (await MySqlUtils.CheckExists(player.Id))
             {
-                if (MySQLUtils.CheckExists(player.Id))
-                {
-                    userList.Add(player.Id, MySQLUtils.GetColor(player.Id));
-                }
-            });
-        }
-
-        void OnPlayerDisconnected(UnturnedPlayer player)
-        {
-            if (userList.ContainsKey(player.Id))
-            {
-                userList.Remove(player.Id);
+                UserList.Add(player.Id, await MySqlUtils.GetColor(player.Id));
             }
         }
 
-        void OnPlayerChatted(UnturnedPlayer player, ref UnityEngine.Color color, string message, EChatMode chatMode, ref bool cancel)
+        private void OnPlayerDisconnected(UnturnedPlayer player)
         {
-            if (userList.ContainsKey(player.Id))
+            if (UserList.ContainsKey(player.Id))
             {
-                color = (UnityEngine.Color)UnturnedChat.GetColorFromHex(userList[player.Id]);
+                UserList.Remove(player.Id);
+            }
+        }
+
+        private void OnPlayerChatted(UnturnedPlayer player, ref UnityEngine.Color color, string message, EChatMode chatMode, ref bool cancel)
+        {
+            if (UserList.ContainsKey(player.Id))
+            {
+                color = (UnityEngine.Color)UnturnedChat.GetColorFromHex(UserList[player.Id]);
             }
         }
 
@@ -72,7 +69,7 @@ namespace SuperColorChat
         {
             {"not_enough_money", "You don't have enough money!"},
             {"not_whitelisted_color", "That's not a whitelisted color!"},
-            {"avaliable_colors", "Avaliable colors: {0}"},
+            {"available_colors", "Available colors: {0}"},
             {"color_updated_to", "You've updated your color to {0} for ${1}!"},
             {"log_color_change", "{0} ({1}) has changed their color to {2}!"},
             {"color_reset", "Your color has been reset!"},

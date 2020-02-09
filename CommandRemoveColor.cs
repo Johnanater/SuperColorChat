@@ -22,39 +22,36 @@ namespace SuperColorChat
 
         public async void Execute(IRocketPlayer caller, string[] command)
         {
-            await Task.Run(() =>
+            if (command.Length == 1 && caller.HasPermission("supercolorchat.removecolor.other"))
             {
-                if (command.Length == 1 && caller.HasPermission("supercolorchat.removecolor.other"))
+                var target = UnturnedPlayer.FromName(command[0]);
+
+                if (await Main.MySqlUtils.CheckExists(target.Id) && Main.UserList.ContainsKey(target.Id))
                 {
-                    UnturnedPlayer target = UnturnedPlayer.FromName(command[0]);
+                    await Main.MySqlUtils.RemoveColor(target.Id);
+                    Main.UserList.Remove(target.Id);
 
-                    if (MySQLUtils.CheckExists(target.Id) && Main.userList.ContainsKey(target.Id))
-                    {
-                        MySQLUtils.RemoveColor(target.Id);
-                        Main.userList.Remove(target.Id);
-
-                        UnturnedChat.Say(caller, Main.Instance.Translate("player_color_reset", target.CharacterName));
-                        UnturnedChat.Say(target, Main.Instance.Translate("color_reset_by_staff"));
-                    }
-                    else
-                    {
-                        UnturnedChat.Say(caller, Main.Instance.Translate("player_color_not_found", target.CharacterName));
-                    }
+                    UnturnedChat.Say(caller, Main.Instance.Translate("player_color_reset", target.CharacterName));
+                    UnturnedChat.Say(target, Main.Instance.Translate("color_reset_by_staff"));
                 }
                 else
                 {
-                    if (MySQLUtils.CheckExists(caller.Id) && Main.userList.ContainsKey(caller.Id))
-                    {
-                        MySQLUtils.RemoveColor(caller.Id);
-                        Main.userList.Remove(caller.Id);
-                        UnturnedChat.Say(caller, Main.Instance.Translate("color_reset"));
-                    }
-                    else
-                    {
-                        UnturnedChat.Say(caller, Main.Instance.Translate("your_color_not_found"));
-                    }
+                    UnturnedChat.Say(caller, Main.Instance.Translate("player_color_not_found", target.CharacterName));
                 }
-            });
+            }
+            else
+            {
+                if (await Main.MySqlUtils.CheckExists(caller.Id) && Main.UserList.ContainsKey(caller.Id))
+                {
+                    await Main.MySqlUtils.RemoveColor(caller.Id);
+                    Main.UserList.Remove(caller.Id);
+                    UnturnedChat.Say(caller, Main.Instance.Translate("color_reset"));
+                }
+                else
+                {
+                    UnturnedChat.Say(caller, Main.Instance.Translate("your_color_not_found"));
+                }
+            }
         }
     }
 }
