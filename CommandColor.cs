@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using fr34kyn01535.Uconomy;
 using Rocket.API;
 using Rocket.Core.Logging;
-using Rocket.Unturned.Chat;
 
 namespace SuperColorChat
 {
@@ -24,7 +23,12 @@ namespace SuperColorChat
 
         public List<string> Permissions => new List<string> { "supercolorchat.color" };
 
-        public async void Execute(IRocketPlayer caller, string[] command)
+        public void Execute(IRocketPlayer caller, string[] command)
+        {
+            Task.Run(() => Color(caller, command));
+        }
+
+        public async Task Color(IRocketPlayer caller, string[] command)
         {
             if (command.Length != 0)
             {
@@ -34,7 +38,7 @@ namespace SuperColorChat
                     
                     if (uconomyMoney - Main.Config.Cost < 0)
                     {
-                        UnturnedChat.Say(caller, Main.Instance.Translate("not_enough_money"));
+                        Main.Instance.Tell(caller, Main.Instance.Translate("not_enough_money"));
                         return;
                     }
                 }
@@ -43,7 +47,7 @@ namespace SuperColorChat
 
                 if (color == null)
                 {
-                    UnturnedChat.Say(caller, Main.Instance.Translate("not_whitelisted_color"));
+                    Main.Instance.Tell(caller, Main.Instance.Translate("not_whitelisted_color"));
                     return;
                 }
 
@@ -62,12 +66,12 @@ namespace SuperColorChat
                     await Task.Run(() => Uconomy.Instance.Database.IncreaseBalance(caller.Id, -Main.Config.Cost));
                 }
 
-                UnturnedChat.Say(caller, Main.Instance.Translate("color_updated_to", color.Name, Main.Config.Cost));
+                Main.Instance.Tell(caller, Main.Instance.Translate("color_updated_to", color.Name, Main.Config.Cost));
                 Logger.Log(Main.Instance.Translate("log_color_change", caller.DisplayName, caller.Id, color.Name));
             }
             else
             {
-                UnturnedChat.Say(caller, Main.Instance.Translate("available_colors", string.Join(", ", Main.Config.Colors.Select(c => c.Name).ToArray())));
+                Main.Instance.Tell(caller, Main.Instance.Translate("available_colors", string.Join(", ", Main.Config.Colors.Select(c => c.Name).ToArray())));
             }
         }
     }

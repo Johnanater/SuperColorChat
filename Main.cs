@@ -1,8 +1,10 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
+using Rocket.API;
 using Rocket.API.Collections;
 using Rocket.Core.Logging;
 using Rocket.Core.Plugins;
+using Rocket.Core.Utils;
 using Rocket.Unturned;
 using Rocket.Unturned.Chat;
 using Rocket.Unturned.Events;
@@ -19,7 +21,7 @@ namespace SuperColorChat
         public static Configuration Config;
         public static MySqlUtils MySqlUtils;
 
-        public const string Version = "1.0.2";
+        public const string Version = "1.0.3";
 
         protected override void Load()
         {
@@ -41,19 +43,16 @@ namespace SuperColorChat
             UnturnedPlayerEvents.OnPlayerChatted -= OnPlayerChatted;
         }
 
-        private async void OnPlayerConnected(UnturnedPlayer player)
+        private void OnPlayerConnected(UnturnedPlayer untPlayer)
         {
-            if (await MySqlUtils.CheckExists(player.Id))
-            {
-                UserList.Add(player.Id, await MySqlUtils.GetColor(player.Id));
-            }
+            Task.Run(() => AddPlayer(untPlayer));
         }
 
-        private void OnPlayerDisconnected(UnturnedPlayer player)
+        private void OnPlayerDisconnected(UnturnedPlayer untPlayer)
         {
-            if (UserList.ContainsKey(player.Id))
+            if (UserList.ContainsKey(untPlayer.Id))
             {
-                UserList.Remove(player.Id);
+                UserList.Remove(untPlayer.Id);
             }
         }
 
@@ -63,6 +62,19 @@ namespace SuperColorChat
             {
                 color = (UnityEngine.Color)UnturnedChat.GetColorFromHex(UserList[player.Id]);
             }
+        }
+
+        public async Task AddPlayer(UnturnedPlayer untPlayer)
+        {
+            if (await MySqlUtils.CheckExists(untPlayer.Id))
+            {
+                UserList.Add(untPlayer.Id, await MySqlUtils.GetColor(untPlayer.Id));
+            }
+        }
+
+        public void Tell(IRocketPlayer player, string message)
+        {
+            TaskDispatcher.QueueOnMainThread(() => UnturnedChat.Say(player, message));
         }
 
         public override TranslationList DefaultTranslations => new TranslationList()
