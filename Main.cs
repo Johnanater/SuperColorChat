@@ -21,7 +21,7 @@ namespace SuperColorChat
         public static Configuration Config;
         public static MySqlUtils MySqlUtils;
 
-        public const string Version = "1.0.3";
+        public const string Version = "1.0.4";
 
         protected override void Load()
         {

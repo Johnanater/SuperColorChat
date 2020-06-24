@@ -9,7 +9,6 @@ namespace SuperColorChat
     {
         internal MySqlUtils()
         {
-            new I18N.West.CP1250();
             var connection = CreateConnection();
             try
             {
